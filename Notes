@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warm Notes Studio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        amber: {
+                            50: '#fffbeb',
+                            100: '#fef3c7',
+                            200: '#fde68a',
+                            300: '#fcd34d',
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                            600: '#d97706',
+                            700: '#b45309',
+                            800: '#92400e',
+                            900: '#78350f',
+                            950: '#451a03',
+                        },
+                        terracotta: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            200: '#fed7aa',
+                            300: '#fdba74',
+                            400: '#fb923c',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            800: '#9a3412',
+                            900: '#7c2d12',
+                        },
+                        cozy: {
+                            cream: '#fefcf6',
+                            peach: '#ffedd5',
+                            card: '#fffbf2',
+                            border: '#fbe7c6',
+                            text: '#451a03',
+                            subtext: '#78350f',
+                            accent: '#f59e0b',
+                            darkbg: '#1c130e',
+                            darkcard: '#2a1f18'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #fefcf6;
+            color: #451a03;
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* Ambient Canvas Layer */
+        #bgCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #fef3c7;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d97706;
+        }
+
+        /* Universal Text Editor Mode Hover Effects */
+        body.universal-edit-active [data-text-id],
+        body.universal-edit-active .editable-target {
+            outline: 2px dashed #f59e0b !important;
+            outline-offset: 2px;
+            cursor: pointer !important;
+            position: relative;
+            transition: outline 0.15s ease, background-color 0.15s ease;
+        }
+        body.universal-edit-active [data-text-id]:hover,
+        body.universal-edit-active .editable-target:hover {
+            outline: 2px solid #ea580c !important;
+            background-color: rgba(254, 243, 199, 0.6) !important;
+            border-radius: 4px;
+        }
+
+        /* Frame Styles for Photos */
+        .frame-polaroid {
+            background: #ffffff;
+            padding: 10px 10px 30px 10px;
+            box-shadow: 0 10px 20px rgba(69, 26, 3, 0.12), 0 2px 6px rgba(0,0,0,0.06);
+            transform: rotate(-1.5deg);
+            transition: transform 0.25s ease;
+            border: 1px solid #f1f5f9;
+        }
+        .frame-polaroid:hover {
+            transform: rotate(0deg) scale(1.02);
+        }
+
+        .frame-wooden {
+            border: 10px solid #8b5a2b;
+            border-image: linear-gradient(135deg, #a06232 0%, #633c19 50%, #8b5a2b 100%) 10;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5), 0 8px 16px rgba(0,0,0,0.2);
+            padding: 4px;
+            background: #4a2c11;
+        }
+
+        .frame-sunset {
+            border: 4px solid #f59e0b;
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.45), inset 0 0 10px rgba(234, 88, 12, 0.3);
+            border-radius: 12px;
+            padding: 4px;
+            background: linear-gradient(135deg, #fff7ed, #fef3c7);
+        }
+
+        .frame-stitched {
+            border: 2px dashed #d97706;
+            background-color: #ffedd5;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(217, 119, 6, 0.15);
+        }
+
+        .frame-kraft {
+            background-color: #d7ccc8;
+            border: 8px solid #bcaaa4;
+            box-shadow: 3px 3px 12px rgba(0,0,0,0.15);
+            padding: 6px;
+            border-radius: 4px;
+        }
+
+        .frame-amber {
+            border: 3px solid #fbbf24;
+            box-shadow: 0 0 20px rgba(251, 191, 36, 0.6);
+            border-radius: 16px;
+            padding: 4px;
+        }
+
+        /* Poof Delete Animation */
+        @keyframes poof {
+            0% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+                filter: blur(0px);
+            }
+            50% {
+                transform: scale(1.15) rotate(3deg);
+                opacity: 0.7;
+                filter: blur(2px);
+            }
+            100% {
+                transform: scale(0) rotate(-10deg);
+                opacity: 0;
+                filter: blur(10px);
+            }
+        }
+        .animate-poof {
+            animation: poof 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+            pointer-events: none !important;
+        }
+
+        /* Bouncy Cards & Micro-interactions */
+        .cozy-card {
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+        }
+        .cozy-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 16px 28px -8px rgba(217, 119, 6, 0.18);
+        }
+
+        /* Canvas View Interactive Drag Node */
+        .canvas-note {
+            position: absolute;
+            touch-action: none;
+            user-select: none;
+            cursor: grab;
+        }
+        .canvas-note:active {
+            cursor: grabbing;
+            z-index: 50 !important;
+        }
+
+        /* Pulse glow for highlight */
+        @keyframes pulse-warm {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+            50% { box-shadow: 0 0 0 14px rgba(245, 158, 11, 0); }
+        }
+        .tour-highlight {
+            animation: pulse-warm 1.8s infinite;
+            position: relative;
+            z-index: 60 !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-amber-200 selection:text-amber-900">
+
+    <!-- Background Animated Canvas -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- Universal Edit Banner Indicator (Appears when Universal Edit Mode is ON) -->
+    <div id="universalEditBanner" class="hidden sticky top-0 z-50 bg-amber-500 text-amber-950 font-bold px-4 py-2 shadow-lg flex items-center justify-between text-sm sm:text-base border-b border-amber-600 transition-all">
+        <div class="flex items-center space-x-2">
+            <span class="text-xl animate-bounce">✏️</span>
+            <span><strong data-text-id="banner-title">UNIVERSAL TEXT EDITOR IS ACTIVE!</strong> <span class="hidden md:inline font-normal" data-text-id="banner-subtitle">Click on ANY text element anywhere on screen to edit it directly.</span></span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button id="resetTextBtnBanner" class="bg-amber-900 text-amber-100 hover:bg-amber-950 px-3 py-1 rounded-lg text-xs transition shadow-sm" data-text-id="banner-reset-btn">
+                <i class="fa-solid fa-rotate-left mr-1"></i> Reset App Text
+            </button>
+            <button id="closeEditBannerBtn" class="bg-amber-600 hover:bg-amber-700 text-amber-950 rounded-full w-7 h-7 flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="relative z-20 bg-cozy-cream/90 dark:bg-cozy-darkcard/90 backdrop-blur-md border-b border-amber-200/60 dark:border-amber-900/40 px-4 sm:px-8 py-3.5 transition-colors">
+        <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Logo & Title -->
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-terracotta-500 flex items-center justify-center text-white shadow-md shadow-amber-500/20 transform hover:rotate-6 transition">
+                    <i class="fa-solid fa-note-sticky text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold font-display tracking-tight text-amber-950 dark:text-amber-100 flex items-center gap-2">
+                        <span data-text-id="app-title">Warm Notes Studio</span>
+                        <span class="text-xs bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-full font-semibold" data-text-id="app-badge">v3.0 Cozy</span>
+                    </h1>
+                    <p class="text-xs text-amber-800/80 dark:text-amber-300/70 hidden sm:block" data-text-id="app-subtitle">Your warm, customizable space for thoughts, ideas & cozy memories</p>
+                </div>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+                
+                <!-- Universal Text Editor Toggle -->
+                <button id="toggleUniversalEditBtn" class="bg-gradient-to-r from-amber-500 to-terracotta-500 hover:from-amber-600 hover:to-terracotta-600 text-white font-semibold px-3.5 py-2 rounded-xl text-xs sm:text-sm shadow-md shadow-amber-500/20 flex items-center space-x-2 transition transform active:scale-95 border border-amber-400/30">
+                    <i class="fa-solid fa-pen-ruler"></i>
+                    <span data-text-id="nav-edit-mode-btn">✏️ Universal Text Editor</span>
+                    <span id="editModeStatusTag" class="bg-amber-950/30 text-amber-100 text-[10px] px-1.5 py-0.5 rounded-md font-mono">OFF</span>
+                </button>
+
+                <!-- Guided Tour Button -->
+                <button id="startTourBtn" class="bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-800/50 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1.5 border border-amber-300/40">
+                    <i class="fa-solid fa-graduation-cap text-amber-600"></i>
+                    <span data-text-id="nav-tour-btn">🎓 Guided Tour</span>
+                </button>
+
+                <!-- Sound FX Toggle -->
+                <button id="soundToggleBtn" class="bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-800/50 p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1 border border-amber-300/40">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-amber-600"></i>
+                    <span class="hidden md:inline" data-text-id="nav-sound-btn">Sound</span>
+                </button>
+
+                <!-- Studio & Palette Settings -->
+                <button id="openStudioModalBtn" class="bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-800/50 p-2 sm:px-3 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center space-x-1 border border-amber-300/40">
+                    <i class="fa-solid fa-palette text-terracotta-600"></i>
+                    <span class="hidden md:inline" data-text-id="nav-studio-btn">Studio</span>
+                </button>
+
+                <!-- New Note CTA -->
+                <button id="openNewNoteModalBtn" class="bg-amber-950 dark:bg-amber-100 hover:bg-amber-900 dark:hover:bg-white text-amber-100 dark:text-amber-950 font-bold px-4 py-2 rounded-xl text-xs sm:text-sm shadow-lg flex items-center space-x-2 transition transform hover:-translate-y-0.5 active:translate-y-0">
+                    <i class="fa-solid fa-plus text-amber-400 dark:text-amber-600"></i>
+                    <span data-text-id="nav-new-note-btn">New Note</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main App Layout -->
+    <div class="relative z-10 flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 md:p-8 flex flex-col md:flex-row gap-6">
+
+        <!-- Sidebar Navigation & Controls -->
+        <aside class="w-full md:w-64 shrink-0 flex flex-col gap-5">
+            
+            <!-- View Selector Widget -->
+            <div class="bg-cozy-card dark:bg-cozy-darkcard p-3.5 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 shadow-sm">
+                <p class="text-xs font-bold uppercase tracking-wider text-amber-800/70 dark:text-amber-400 mb-2 px-1" data-text-id="sidebar-view-label">Studio Views</p>
+                <div class="grid grid-cols-3 md:grid-cols-1 gap-1.5">
+                    <button data-view="grid" class="view-tab-btn active bg-amber-500 text-white font-semibold px-3 py-2 rounded-xl text-xs sm:text-sm flex items-center justify-center md:justify-start space-x-2 transition">
+                        <i class="fa-solid fa-grip"></i>
+                        <span data-text-id="tab-grid">Grid Layout</span>
+                    </button>
+                    <button data-view="canvas" class="view-tab-btn text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium px-3 py-2 rounded-xl text-xs sm:text-sm flex items-center justify-center md:justify-start space-x-2 transition">
+                        <i class="fa-solid fa-object-group"></i>
+                        <span data-text-id="tab-canvas">Freeform Canvas</span>
+                    </button>
+                    <button data-view="kanban" class="view-tab-btn text-amber-900 dark:text-amber-200 hover:bg-amber-100 dark:hover:bg-amber-900/40 font-medium px-3 py-2 rounded-xl text-xs sm:text-sm flex items-center justify-center md:justify-start space-x-2 transition">
+                        <i class="fa-solid fa-columns-stripe"></i>
+                        <span data-text-id="tab-kanban">Kanban Board</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Search & Filter Box -->
+            <div class="bg-cozy-card dark:bg-cozy-darkcard p-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 shadow-sm space-y-3">
+                <div class="relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-amber-500 text-xs"></i>
+                    <input type="text" id="searchInput" placeholder="Search notes..." data-text-id="search-placeholder" class="w-full bg-white dark:bg-amber-950/50 text-amber-950 dark:text-amber-100 text-xs sm:text-sm pl-9 pr-3 py-2 rounded-xl border border-amber-200 dark:border-amber-800/60 focus:outline-none focus:ring-2 focus:ring-amber-400 transition placeholder:text-amber-700/50">
+                </div>
+
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-wider text-amber-800/70 dark:text-amber-400 mb-2 px-1" data-text-id="sidebar-cat-label">Categories</p>
+                    <div class="flex flex-wrap md:flex-col gap-1 text-xs" id="categoryFilterContainer">
+                        <!-- Category pills dynamically populated -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cozy Stats Box -->
+            <div class="bg-gradient-to-br from-amber-100 to-terracotta-100 dark:from-amber-950/60 dark:to-terracotta-950/40 p-4 rounded-2xl border border-amber-200 dark:border-amber-900/40 shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-900 dark:text-amber-200" data-text-id="stats-title">Cozy Insights</span>
+                    <i class="fa-solid fa-sparkles text-amber-500"></i>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="bg-white/70 dark:bg-amber-900/40 p-2 rounded-xl">
+                        <span class="block text-xl font-bold text-amber-950 dark:text-amber-100" id="totalNotesCount">0</span>
+                        <span class="text-[10px] text-amber-800 dark:text-amber-300 font-medium" data-text-id="stats-total-notes">Total Notes</span>
+                    </div>
+                    <div class="bg-white/70 dark:bg-amber-900/40 p-2 rounded-xl">
+                        <span class="block text-xl font-bold text-amber-950 dark:text-amber-100" id="pinnedNotesCount">0</span>
+                        <span class="text-[10px] text-amber-800 dark:text-amber-300 font-medium" data-text-id="stats-pinned-notes">Pinned Favorites</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Tutorial Hint Box -->
+            <div class="bg-amber-500/10 dark:bg-amber-900/20 p-4 rounded-2xl border border-amber-300/40 dark:border-amber-800/30 text-xs space-y-1.5">
+                <div class="flex items-center space-x-1.5 font-bold text-amber-900 dark:text-amber-200">
+                    <i class="fa-solid fa-lightbulb text-amber-500"></i>
+                    <span data-text-id="tip-heading">Cozy Studio Tip</span>
+                </div>
+                <p class="text-amber-800/90 dark:text-amber-300/80 leading-relaxed" data-text-id="tip-body">
+                    Click "✏️ Universal Text Editor" at the top to modify headers, buttons, or tab titles across the entire app!
+                </p>
+            </div>
+
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <main class="flex-1 min-w-0 flex flex-col gap-4">
+            
+            <!-- Workspace Header Bar -->
+            <div class="flex items-center justify-between bg-cozy-card dark:bg-cozy-darkcard p-3.5 px-5 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 shadow-sm">
+                <div>
+                    <h2 id="currentViewTitle" class="text-lg font-bold font-display text-amber-950 dark:text-amber-100" data-text-id="view-header-title">
+                        Masonry Grid Workspace
+                    </h2>
+                    <p id="currentViewDesc" class="text-xs text-amber-800/70 dark:text-amber-300/60" data-text-id="view-header-desc">
+                        Organized auto-sorting notes with warm tags and attachments
+                    </p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button id="clearFiltersBtn" class="text-xs text-amber-800 dark:text-amber-300 hover:text-amber-950 dark:hover:text-amber-100 bg-amber-100 dark:bg-amber-900/40 px-2.5 py-1.5 rounded-lg transition hidden">
+                        <i class="fa-solid fa-filter-circle-xmark mr-1"></i>
+                        <span data-text-id="clear-filter-btn">Reset Filters</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW 1: Masonry Grid View Container -->
+            <div id="gridView" class="view-container">
+                <div id="gridNotesList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Note Cards injected here -->
+                </div>
+            </div>
+
+            <!-- VIEW 2: Freeform Canvas View Container -->
+            <div id="canvasView" class="view-container hidden">
+                <div class="relative w-full h-[600px] bg-amber-50/50 dark:bg-amber-950/20 rounded-2xl border-2 border-dashed border-amber-300/60 dark:border-amber-800/40 overflow-hidden shadow-inner p-4" id="canvasBoard">
+                    <div class="absolute top-3 left-3 bg-amber-200/60 dark:bg-amber-900/50 px-3 py-1 rounded-full text-[11px] text-amber-900 dark:text-amber-200 font-semibold backdrop-blur-sm z-10" data-text-id="canvas-instruction">
+                        <i class="fa-solid fa-arrows-up-down-left-right mr-1"></i> Drag notes anywhere on canvas
+                    </div>
+                    <!-- Canvas note items rendered here -->
+                </div>
+            </div>
+
+            <!-- VIEW 3: Kanban Workflow Board View Container -->
+            <div id="kanbanView" class="view-container hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    
+                    <!-- Kanban Column: To Do -->
+                    <div class="bg-amber-100/50 dark:bg-amber-950/30 p-3.5 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 flex flex-col min-h-[500px]" data-status="todo" ondragover="allowKanbanDrop(event)" ondrop="handleKanbanDrop(event, 'todo')">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-amber-200 dark:border-amber-800/40">
+                            <span class="font-bold text-xs uppercase tracking-wider text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                <span data-text-id="kanban-col-todo">To Do</span>
+                            </span>
+                            <span id="count-todo" class="text-xs bg-amber-200 dark:bg-amber-900 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-full font-bold">0</span>
+                        </div>
+                        <div id="kanbanList-todo" class="space-y-3 flex-1"></div>
+                    </div>
+
+                    <!-- Kanban Column: In Progress -->
+                    <div class="bg-amber-100/50 dark:bg-amber-950/30 p-3.5 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 flex flex-col min-h-[500px]" data-status="in-progress" ondragover="allowKanbanDrop(event)" ondrop="handleKanbanDrop(event, 'in-progress')">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-amber-200 dark:border-amber-800/40">
+                            <span class="font-bold text-xs uppercase tracking-wider text-terracotta-600 dark:text-terracotta-300 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-terracotta-500"></span>
+                                <span data-text-id="kanban-col-progress">In Progress</span>
+                            </span>
+                            <span id="count-in-progress" class="text-xs bg-terracotta-200 dark:bg-terracotta-900 text-terracotta-900 dark:text-terracotta-200 px-2 py-0.5 rounded-full font-bold">0</span>
+                        </div>
+                        <div id="kanbanList-in-progress" class="space-y-3 flex-1"></div>
+                    </div>
+
+                    <!-- Kanban Column: Cozy Done -->
+                    <div class="bg-amber-100/50 dark:bg-amber-950/30 p-3.5 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 flex flex-col min-h-[500px]" data-status="done" ondragover="allowKanbanDrop(event)" ondrop="handleKanbanDrop(event, 'done')">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-amber-200 dark:border-amber-800/40">
+                            <span class="font-bold text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <span data-text-id="kanban-col-done">Cozy Done</span>
+                            </span>
+                            <span id="count-done" class="text-xs bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full font-bold">0</span>
+                        </div>
+                        <div id="kanbanList-done" class="space-y-3 flex-1"></div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Empty State Display -->
+            <div id="emptyState" class="hidden flex-col items-center justify-center py-16 text-center bg-cozy-card dark:bg-cozy-darkcard rounded-2xl border border-dashed border-amber-300/80 dark:border-amber-800/50 p-6">
+                <div class="w-16 h-16 rounded-3xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center text-amber-500 text-2xl mb-3 shadow-inner">
+                    <i class="fa-solid fa-mug-hot"></i>
+                </div>
+                <h3 class="text-base font-bold text-amber-950 dark:text-amber-100 mb-1" data-text-id="empty-title">No Notes Here Yet!</h3>
+                <p class="text-xs text-amber-800/70 dark:text-amber-300/70 max-w-xs mb-4 leading-relaxed" data-text-id="empty-desc">
+                    Your canvas is peaceful and clear. Click "New Note" to record ideas, checklists, or photo memories.
+                </p>
+                <button id="emptyStateAddBtn" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-md">
+                    <i class="fa-solid fa-plus mr-1"></i> <span data-text-id="empty-btn">Create First Note</span>
+                </button>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL 1: Note Create / Edit Dialog -->
+    <div id="noteModal" class="fixed inset-0 z-50 bg-amber-950/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cozy-cream dark:bg-cozy-darkcard w-full max-w-lg rounded-3xl border border-amber-300 dark:border-amber-800 shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto">
+            
+            <div class="flex items-center justify-between pb-4 mb-4 border-b border-amber-200 dark:border-amber-800/60">
+                <h3 id="modalHeading" class="text-lg font-bold font-display text-amber-950 dark:text-amber-100" data-text-id="modal-create-title">
+                    Create New Note
+                </h3>
+                <button id="closeNoteModalBtn" class="text-amber-700 hover:text-amber-950 dark:text-amber-300 dark:hover:text-amber-100 text-lg p-1 transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form id="noteForm" class="space-y-4">
+                <input type="hidden" id="noteId">
+
+                <!-- Title Input -->
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1" data-text-id="form-label-title">Note Title</label>
+                    <input type="text" id="noteTitle" required placeholder="Give your note a cozy title..." class="w-full bg-white dark:bg-amber-950/60 text-amber-950 dark:text-amber-100 text-sm px-3.5 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                </div>
+
+                <!-- Category & Workflow Status Row -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1" data-text-id="form-label-category">Category</label>
+                        <select id="noteCategory" class="w-full bg-white dark:bg-amber-950/60 text-amber-950 dark:text-amber-100 text-xs px-3 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            <option value="Personal">Personal</option>
+                            <option value="Work">Work</option>
+                            <option value="Ideas">Ideas</option>
+                            <option value="Recipes">Recipes</option>
+                            <option value="Tasks">Tasks</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1" data-text-id="form-label-status">Kanban Column</label>
+                        <select id="noteStatus" class="w-full bg-white dark:bg-amber-950/60 text-amber-950 dark:text-amber-100 text-xs px-3 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+                            <option value="todo">To Do</option>
+                            <option value="in-progress">In Progress</option>
+                            <option value="done">Cozy Done</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Content Body Textarea -->
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1" data-text-id="form-label-content">Body Content</label>
+                    <textarea id="noteContent" rows="4" placeholder="Write down your thoughts, reminders, or cozy memories..." class="w-full bg-white dark:bg-amber-950/60 text-amber-950 dark:text-amber-100 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-amber-200 dark:border-amber-800 focus:ring-2 focus:ring-amber-500 focus:outline-none resize-none"></textarea>
+                </div>
+
+                <!-- Color Theme Picker -->
+                <div>
+                    <label class="block text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider mb-1" data-text-id="form-label-color">Note Theme Color</label>
+                    <div class="flex items-center space-x-2" id="colorPickerContainer">
+                        <!-- Color buttons injected via JS -->
+                    </div>
+                </div>
+
+                <!-- Photo Attachment Section -->
+                <div class="p-3 bg-amber-100/50 dark:bg-amber-900/20 rounded-2xl border border-amber-200/80 dark:border-amber-800/40 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-900 dark:text-amber-200" data-text-id="form-photo-heading"><i class="fa-solid fa-camera mr-1 text-amber-600"></i> Photo Attachment & Frame</span>
+                        <button type="button" id="clearPhotoBtn" class="text-[11px] text-red-600 hover:underline hidden">Remove Photo</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input type="file" id="photoFileInput" accept="image/*" class="text-xs text-amber-900 dark:text-amber-200 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-500 file:text-white hover:file:bg-amber-600 cursor-pointer">
+                        <input type="text" id="photoUrlInput" placeholder="...or paste Image URL" class="bg-white dark:bg-amber-950/60 text-amber-950 dark:text-amber-100 text-xs px-3 py-1.5 rounded-xl border border-amber-200 dark:border-amber-800">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-bold text-amber-900/80 dark:text-amber-300 mb-1" data-text-id="form-label-border">Frame Style</label>
+                        <select id="photoBorderStyle" class="w-full bg-white dark:bg-amber-950/60 text-amber-950 dark:text-amber-100 text-xs px-3 py-1.5 rounded-xl border border-amber-200 dark:border-amber-800">
+                            <option value="frame-polaroid">📸 Polaroid Classic</option>
+                            <option value="frame-wooden">🪵 Warm Wooden Frame</option>
+                            <option value="frame-sunset">🌅 Golden Sunset Glow</option>
+                            <option value="frame-stitched">🧵 Cozy Stitched Border</option>
+                            <option value="frame-kraft">📜 Vintage Kraft Paper</option>
+                            <option value="frame-amber">✨ Glowing Amber Outline</option>
+                        </select>
+                    </div>
+
+                    <div id="photoPreviewContainer" class="hidden flex justify-center py-2">
+                        <img id="photoPreviewImg" class="max-h-36 rounded shadow" src="" alt="Preview">
+                    </div>
+                </div>
+
+                <!-- Submit Button Bar -->
+                <div class="flex items-center justify-end space-x-2 pt-3 border-t border-amber-200 dark:border-amber-800/60">
+                    <button type="button" id="cancelNoteModalBtn" class="px-4 py-2 text-xs font-semibold text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40 rounded-xl transition" data-text-id="modal-cancel-btn">Cancel</button>
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-5 py-2 rounded-xl text-xs shadow-md transition" data-text-id="modal-save-btn">Save Note</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Theme & Studio Settings Modal -->
+    <div id="studioModal" class="fixed inset-0 z-50 bg-amber-950/50 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-cozy-cream dark:bg-cozy-darkcard w-full max-w-md rounded-3xl border border-amber-300 dark:border-amber-800 shadow-2xl p-6 relative">
+            <div class="flex items-center justify-between pb-3 mb-4 border-b border-amber-200 dark:border-amber-800/60">
+                <h3 class="text-base font-bold font-display text-amber-950 dark:text-amber-100" data-text-id="studio-modal-title">
+                    <i class="fa-solid fa-sliders text-terracotta-500 mr-1.5"></i> Cozy Studio Controls
+                </h3>
+                <button id="closeStudioModalBtn" class="text-amber-700 dark:text-amber-300 text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <!-- Theme Palette Selector -->
+                <div>
+                    <label class="block font-bold text-amber-900 dark:text-amber-200 uppercase mb-1.5" data-text-id="studio-palette-label">Color Theme Mode</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button class="theme-option-btn p-2.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-100 dark:bg-amber-900/40 text-amber-950 dark:text-amber-100 font-semibold flex items-center justify-between" data-theme="warm">
+                            <span>☀️ Warm Honey</span>
+                            <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                        </button>
+                        <button class="theme-option-btn p-2.5 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-100 dark:bg-amber-900/40 text-amber-950 dark:text-amber-100 font-semibold flex items-center justify-between" data-theme="dark">
+                            <span>🌙 Dark Espresso</span>
+                            <span class="w-3 h-3 rounded-full bg-amber-950"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Particle Canvas Control -->
+                <div class="p-3 bg-amber-100/50 dark:bg-amber-900/20 rounded-xl space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-amber-900 dark:text-amber-200" data-text-id="studio-particle-label">Ambient Sparkles Speed</span>
+                        <span id="particleSpeedValue" class="font-mono text-amber-600">1.0x</span>
+                    </div>
+                    <input type="range" id="particleSpeedRange" min="0" max="3" step="0.5" value="1" class="w-full accent-amber-500">
+                </div>
+
+                <!-- Reset Text Customizations -->
+                <div class="pt-2 border-t border-amber-200 dark:border-amber-800/60">
+                    <label class="block font-bold text-amber-900 dark:text-amber-200 uppercase mb-1" data-text-id="studio-reset-label">Custom Text Reset</label>
+                    <p class="text-[11px] text-amber-800/80 dark:text-amber-300/80 mb-2" data-text-id="studio-reset-desc">
+                        Revert all customized UI text, headers, and button labels back to default phrasing.
+                    </p>
+                    <button id="resetAllTextBtnModal" class="w-full bg-amber-200 dark:bg-amber-900/60 hover:bg-amber-300 text-amber-950 dark:text-amber-100 font-bold py-2 rounded-xl text-xs transition flex items-center justify-center space-x-1.5">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span data-text-id="studio-reset-btn-text">Reset All App Text Defaults</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: Interactive Guided Tour Card Overlay -->
+    <div id="tourOverlay" class="fixed inset-0 z-50 pointer-events-auto bg-amber-950/40 backdrop-blur-[2px] hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-cozy-cream dark:bg-cozy-darkcard border-2 border-amber-500 w-full max-w-md rounded-3xl p-5 shadow-2xl space-y-3 relative animate-bounce-short">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider" id="tourStepBadge">Step 1 of 6</span>
+                <button id="skipTourBtn" class="text-xs text-amber-700 dark:text-amber-300 hover:underline" data-text-id="tour-skip">Skip Tour</button>
+            </div>
+            <h4 id="tourStepTitle" class="text-base font-bold text-amber-950 dark:text-amber-100 font-display">Welcome to Warm Notes Studio!</h4>
+            <p id="tourStepBody" class="text-xs text-amber-900/80 dark:text-amber-200/80 leading-relaxed">
+                This cozy note-taking studio helps you organize thoughts, checklists, and photo memories easily. Let's take a quick 1-minute walk-through!
+            </p>
+            <div class="flex items-center justify-between pt-2">
+                <button id="prevTourBtn" class="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 text-xs font-semibold rounded-xl" data-text-id="tour-prev">Back</button>
+                <button id="nextTourBtn" class="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-md" data-text-id="tour-next">Next Step →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        
+        // DEFAULT SEED NOTES DATA
+        const DEFAULT_NOTES = [
+            {
+                id: 'note-1',
+                title: '✨ Welcome to Your Warm Studio',
+                content: 'Create, organize, and drag your notes freely! You can attach photos with cozy borders, create checklists, and customize ANY text on screen.',
+                category: 'Personal',
+                status: 'todo',
+                color: '#fde68a',
+                pinned: true,
+                createdAt: new Date().toISOString(),
+                x: 40,
+                y: 50,
+                photo: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=500&auto=format&fit=crop&q=60',
+                photoBorder: 'frame-polaroid'
+            },
+            {
+                id: 'note-2',
+                title: '✏️ Universal Text Editor',
+                content: 'Click "✏️ Universal Text Editor" at the very top of the bar. Once enabled, click ANY text on screen—buttons, headers, titles—and type whatever you like!',
+                category: 'Ideas',
+                status: 'in-progress',
+                color: '#fed7aa',
+                pinned: false,
+                createdAt: new Date().toISOString(),
+                x: 320,
+                y: 80,
+                photo: '',
+                photoBorder: 'frame-sunset'
+            },
+            {
+                id: 'note-3',
+                title: '☕ Sunday Coffee & Cinnamon Recipe',
+                content: '1. Brew dark roast\n2. Stea milk with brown sugar\n3. Sprinkle cinnamon & honey warmth.',
+                category: 'Recipes',
+                status: 'done',
+                color: '#fbcfe8',
+                pinned: false,
+                createdAt: new Date().toISOString(),
+                x: 600,
+                y: 120,
+                photo: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500&auto=format&fit=crop&q=60',
+                photoBorder: 'frame-wooden'
+            }
+        ];
+
+        // APPLICATION STATE OBJECT
+        const state = {
+            notes: [],
+            customTextMap: {},
+            universalEditMode: false,
+            soundEnabled: true,
+            activeView: 'grid', // 'grid' | 'canvas' | 'kanban'
+            activeCategory: 'All',
+            searchQuery: '',
+            theme: 'warm',
+            particleSpeed: 1.0,
+            colorOptions: ['#fde68a', '#fed7aa', '#fbcfe8', '#c7d2fe', '#a7f3d0', '#e9d5ff']
+        };
+
+        // WEB AUDIO SYNTHESIZER FOR SOUND CHIMES
+        class CozySoundEngine {
+            constructor() {
+                this.ctx = null;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) {
+                        this.ctx = new AudioContext();
+                    }
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playChime(type) {
+                if (!state.soundEnabled) return;
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+
+                    const now = this.ctx.currentTime;
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    if (type === 'add') {
+                        // Soft ascending arpeggio
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(523.25, now); // C5
+                        osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1); // E5
+                        osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2); // G5
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                        osc.start(now);
+                        osc.stop(now + 0.35);
+                    } else if (type === 'delete') {
+                        // Soft poof descending tone
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(440, now); // A4
+                        osc.frequency.exponentialRampToValueAtTime(220, now + 0.25); // A3
+                        gain.gain.setValueAtTime(0.2, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+                        osc.start(now);
+                        osc.stop(now + 0.28);
+                    } else if (type === 'edit') {
+                        // Dual tick
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(880, now);
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                    }
+                } catch (e) {
+                    console.log('Audio playback prevented', e);
+                }
+            }
+        }
+
+        const soundEngine = new CozySoundEngine();
+
+        
+        // STORAGE ENGINE
+        const Storage = {
+            saveNotes() {
+                try {
+                    localStorage.setItem('warm_notes_data', JSON.stringify(state.notes));
+                } catch (e) { console.error('Save failed', e); }
+            },
+            loadNotes() {
+                try {
+                    const raw = localStorage.getItem('warm_notes_data');
+                    if (raw) return JSON.parse(raw);
+                } catch (e) { console.error('Load failed', e); }
+                return DEFAULT_NOTES;
+            },
+            saveCustomText() {
+                try {
+                    localStorage.setItem('warm_custom_text_map', JSON.stringify(state.customTextMap));
+                } catch (e) { console.error('Text map save failed', e); }
+            },
+            loadCustomText() {
+                try {
+                    const raw = localStorage.getItem('warm_custom_text_map');
+                    if (raw) return JSON.parse(raw);
+                } catch (e) { console.error('Text map load failed', e); }
+                return {};
+            }
+        };
+
+        // UNIVERSAL TEXT EDITOR ENGINE
+        const UniversalTextEngine = {
+            init() {
+                // Apply saved custom texts to DOM elements matching data-text-id
+                this.applyCustomTextMap();
+
+                // Delegated event listener for click in Universal Edit Mode
+                document.body.addEventListener('click', (e) => {
+                    if (!state.universalEditMode) return;
+
+                    // Find closest element with data-text-id or editable class
+                    const target = e.target.closest('[data-text-id]');
+                    if (!target) return;
+
+                    // Prevent default action (e.g., button clicks, link navigation)
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    this.makeElementEditable(target);
+                }, true);
+            },
+
+            toggleMode(forceState = null) {
+                state.universalEditMode = forceState !== null ? forceState : !state.universalEditMode;
+                const body = document.body;
+                const banner = document.getElementById('universalEditBanner');
+                const tag = document.getElementById('editModeStatusTag');
+
+                if (state.universalEditMode) {
+                    body.classList.add('universal-edit-active');
+                    banner.classList.remove('hidden');
+                    tag.textContent = 'ON';
+                    tag.className = 'bg-emerald-600 text-white text-[10px] px-1.5 py-0.5 rounded-md font-mono animate-pulse';
+                    soundEngine.playChime('edit');
+                } else {
+                    body.classList.remove('universal-edit-active');
+                    banner.classList.add('hidden');
+                    tag.textContent = 'OFF';
+                    tag.className = 'bg-amber-950/30 text-amber-100 text-[10px] px-1.5 py-0.5 rounded-md font-mono';
+                }
+            },
+
+            makeElementEditable(el) {
+                const textId = el.getAttribute('data-text-id');
+                if (!textId) return;
+
+                // Make content editable
+                el.contentEditable = "true";
+                el.focus();
+                
+                // Select all text inside
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+
+                const onBlur = () => {
+                    el.contentEditable = "false";
+                    const newText = el.innerText.trim();
+                    if (newText) {
+                        state.customTextMap[textId] = newText;
+                        Storage.saveCustomText();
+                        soundEngine.playChime('edit');
+                    }
+                    el.removeEventListener('blur', onBlur);
+                    el.removeEventListener('keydown', onKey);
+                };
+
+                const onKey = (evt) => {
+                    if (evt.key === 'Enter') {
+                        evt.preventDefault();
+                        el.blur();
+                    } else if (evt.key === 'Escape') {
+                        el.innerText = state.customTextMap[textId] || el.dataset.defaultText || el.innerText;
+                        el.blur();
+                    }
+                };
+
+                el.addEventListener('blur', onBlur);
+                el.addEventListener('keydown', onKey);
+            },
+
+            applyCustomTextMap() {
+                const elements = document.querySelectorAll('[data-text-id]');
+                elements.forEach(el => {
+                    const textId = el.getAttribute('data-text-id');
+                    if (!el.dataset.defaultText) {
+                        el.dataset.defaultText = el.innerText;
+                    }
+                    if (state.customTextMap[textId]) {
+                        el.innerText = state.customTextMap[textId];
+                    }
+                });
+            },
+
+            resetAllText() {
+                state.customTextMap = {};
+                Storage.saveCustomText();
+                const elements = document.querySelectorAll('[data-text-id]');
+                elements.forEach(el => {
+                    if (el.dataset.defaultText) {
+                        el.innerText = el.dataset.defaultText;
+                    }
+                });
+                soundEngine.playChime('add');
+            }
+        };
+
+
+        // MAIN NOTE RENDER & STATE LOGIC
+        const NoteEngine = {
+            init() {
+                state.notes = Storage.loadNotes();
+                state.customTextMap = Storage.loadCustomText();
+                this.renderCategories();
+                this.renderAllViews();
+            },
+
+            getFilteredNotes() {
+                return state.notes.filter(note => {
+                    const matchesCat = state.activeCategory === 'All' || note.category === state.activeCategory;
+                    const matchesSearch = !state.searchQuery || 
+                        note.title.toLowerCase().includes(state.searchQuery.toLowerCase()) || 
+                        note.content.toLowerCase().includes(state.searchQuery.toLowerCase());
+                    return matchesCat && matchesSearch;
+                }).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+            },
+
+            renderCategories() {
+                const container = document.getElementById('categoryFilterContainer');
+                const categories = ['All', 'Personal', 'Work', 'Ideas', 'Recipes', 'Tasks'];
+                
+                container.innerHTML = categories.map(cat => {
+                    const active = state.activeCategory === cat;
+                    const activeClass = active 
+                        ? 'bg-amber-500 text-white font-bold shadow-sm' 
+                        : 'bg-amber-100 dark:bg-amber-900/40 text-amber-900 dark:text-amber-200 hover:bg-amber-200 dark:hover:bg-amber-800/50';
+                    return `
+                        <button onclick="NoteEngine.setCategory('${cat}')" class="${activeClass} px-2.5 py-1 rounded-xl text-xs transition flex items-center justify-between">
+                            <span>${cat}</span>
+                        </button>
+                    `;
+                }).join('');
+            },
+
+            setCategory(cat) {
+                state.activeCategory = cat;
+                this.renderCategories();
+                this.renderAllViews();
+            },
+
+            // CRITICAL DELETION METHOD: Instant visual poof + clean removal
+            deleteNote(id, event) {
+                if (event) {
+                    event.stopPropagation();
+                    event.preventDefault();
+                }
+
+                // Play poof audio chime
+                soundEngine.playChime('delete');
+
+                // Find element across views and trigger poof CSS animation
+                const cards = document.querySelectorAll(`[data-note-card-id="${id}"]`);
+                cards.forEach(card => {
+                    card.classList.add('animate-poof');
+                });
+
+                // Smooth timeout to clean up state & re-render DOM
+                setTimeout(() => {
+                    state.notes = state.notes.filter(n => n.id !== id);
+                    Storage.saveNotes();
+                    this.renderAllViews();
+                }, 320);
+            },
+
+            togglePin(id, event) {
+                if (event) event.stopPropagation();
+                const note = state.notes.find(n => n.id === id);
+                if (note) {
+                    note.pinned = !note.pinned;
+                    Storage.saveNotes();
+                    soundEngine.playChime('edit');
+                    this.renderAllViews();
+                }
+            },
+
+            renderAllViews() {
+                const filtered = this.getFilteredNotes();
+                
+                // Update Stats Counter
+                document.getElementById('totalNotesCount').textContent = state.notes.length;
+                document.getElementById('pinnedNotesCount').textContent = state.notes.filter(n => n.pinned).length;
+
+                // Toggle Empty State
+                const emptyState = document.getElementById('emptyState');
+                if (filtered.length === 0) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                } else {
+                    emptyState.classList.add('hidden');
+                    emptyState.classList.remove('flex');
+                }
+
+                // Render specific active view
+                this.renderGridView(filtered);
+                this.renderCanvasView(filtered);
+                this.renderKanbanView(filtered);
+
+                // Re-apply universal custom text mapping for dynamic components
+                UniversalTextEngine.applyCustomTextMap();
+            },
+
+            createCardHtml(note, isCanvas = false) {
+                const photoMarkup = note.photo ? `
+                    <div class="my-2 flex justify-center">
+                        <div class="${note.photoBorder || 'frame-polaroid'} max-w-full">
+                            <img src="${note.photo}" alt="Attachment" class="max-h-40 w-full object-cover rounded" onerror="this.src='https://placehold.co/400x300/f59e0b/ffffff?text=Cozy+Memory'">
+                        </div>
+                    </div>
+                ` : '';
+
+                const pinIcon = note.pinned ? 'fa-solid fa-thumbtack text-amber-600' : 'fa-regular fa-thumbtack text-amber-800/40 hover:text-amber-600';
+
+                return `
+                    <div class="cozy-card bg-cozy-card dark:bg-cozy-darkcard p-4 rounded-2xl border border-amber-200/90 dark:border-amber-800/60 shadow-md flex flex-col justify-between relative group" 
+                         style="background-color: ${note.color}15; border-top: 4px solid ${note.color};"
+                         data-note-card-id="${note.id}">
+                        
+                        <div>
+                            <!-- Card Header Bar -->
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <div class="flex items-center space-x-1.5 flex-wrap">
+                                    <span class="text-[10px] font-bold uppercase tracking-wider bg-amber-200/80 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-md">
+                                        ${note.category}
+                                    </span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button onclick="NoteEngine.togglePin('${note.id}', event)" class="p-1 text-xs transition" title="Pin Note">
+                                        <i class="${pinIcon}"></i>
+                                    </button>
+                                    <button onclick="NoteEngine.openEditModal('${note.id}', event)" class="p-1 text-xs text-amber-800/60 hover:text-amber-950 dark:text-amber-300 transition" title="Edit Note">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button onclick="NoteEngine.deleteNote('${note.id}', event)" class="p-1 text-xs text-red-600/80 hover:text-red-700 hover:scale-125 transition" title="Delete Note">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Title -->
+                            <h3 class="font-bold font-display text-sm sm:text-base text-amber-950 dark:text-amber-100 mb-1 leading-snug">
+                                ${note.title}
+                            </h3>
+
+                            <!-- Photo Attachment -->
+                            ${photoMarkup}
+
+                            <!-- Body Text -->
+                            <p class="text-xs text-amber-900/90 dark:text-amber-200/90 whitespace-pre-line leading-relaxed mb-3">
+                                ${note.content}
+                            </p>
+                        </div>
+
+                        <!-- Card Footer -->
+                        <div class="pt-2 border-t border-amber-200/50 dark:border-amber-800/40 flex items-center justify-between text-[10px] text-amber-800/60 dark:text-amber-400">
+                            <span>${new Date(note.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                            <span class="capitalize bg-amber-100 dark:bg-amber-900/40 px-1.5 py-0.5 rounded font-mono">${note.status}</span>
+                        </div>
+                    </div>
+                `;
+            },
+
+            renderGridView(notes) {
+                const container = document.getElementById('gridNotesList');
+                if (!container) return;
+                container.innerHTML = notes.map(note => this.createCardHtml(note)).join('');
+            },
+
+            renderCanvasView(notes) {
+                const board = document.getElementById('canvasBoard');
+                if (!board) return;
+
+                // Retain instructions element
+                const instruction = board.querySelector('[data-text-id="canvas-instruction"]').outerHTML;
+                
+                board.innerHTML = instruction + notes.map(note => {
+                    return `
+                        <div class="canvas-note w-64 absolute" 
+                             style="left: ${note.x || 40}px; top: ${note.y || 50}px;"
+                             data-canvas-id="${note.id}"
+                             onmousedown="CanvasEngine.startDrag(event, '${note.id}')"
+                             ontouchstart="CanvasEngine.startDrag(event, '${note.id}')">
+                            ${this.createCardHtml(note, true)}
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            renderKanbanView(notes) {
+                const statuses = ['todo', 'in-progress', 'done'];
+                statuses.forEach(status => {
+                    const listEl = document.getElementById(`kanbanList-${status}`);
+                    const countEl = document.getElementById(`count-${status}`);
+                    if (!listEl) return;
+
+                    const statusNotes = notes.filter(n => n.status === status);
+                    if (countEl) countEl.textContent = statusNotes.length;
+
+                    listEl.innerHTML = statusNotes.map(note => `
+                        <div draggable="true" ondragstart="handleKanbanDragStart(event, '${note.id}')">
+                            ${this.createCardHtml(note)}
+                        </div>
+                    `).join('');
+                });
+            },
+
+            openEditModal(id, event) {
+                if (event) event.stopPropagation();
+                const note = state.notes.find(n => n.id === id);
+                if (!note) return;
+
+                document.getElementById('noteId').value = note.id;
+                document.getElementById('noteTitle').value = note.title;
+                document.getElementById('noteCategory').value = note.category;
+                document.getElementById('noteStatus').value = note.status;
+                document.getElementById('noteContent').value = note.content;
+                document.getElementById('photoUrlInput').value = note.photo || '';
+                document.getElementById('photoBorderStyle').value = note.photoBorder || 'frame-polaroid';
+                
+                document.getElementById('modalHeading').textContent = 'Edit Cozy Note';
+                document.getElementById('noteModal').classList.remove('hidden');
+            }
+        };
+
+
+        // FREEFORM CANVAS DRAG ENGINE
+        const CanvasEngine = {
+            activeNoteId: null,
+            startX: 0,
+            startY: 0,
+            initialLeft: 0,
+            initialTop: 0,
+
+            startDrag(e, id) {
+                if (e.target.closest('button') || state.universalEditMode) return;
+                
+                this.activeNoteId = id;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                
+                const card = document.querySelector(`[data-canvas-id="${id}"]`);
+                if (!card) return;
+
+                this.startX = clientX;
+                this.startY = clientY;
+                this.initialLeft = card.offsetLeft;
+                this.initialTop = card.offsetTop;
+
+                const moveHandler = (evt) => this.onDrag(evt, card);
+                const stopHandler = () => {
+                    document.removeEventListener('mousemove', moveHandler);
+                    document.removeEventListener('mouseup', stopHandler);
+                    document.removeEventListener('touchmove', moveHandler);
+                    document.removeEventListener('touchend', stopHandler);
+                    
+                    // Save canvas positions
+                    const note = state.notes.find(n => n.id === this.activeNoteId);
+                    if (note) {
+                        note.x = card.offsetLeft;
+                        note.y = card.offsetTop;
+                        Storage.saveNotes();
+                    }
+                    this.activeNoteId = null;
+                };
+
+                document.addEventListener('mousemove', moveHandler);
+                document.addEventListener('mouseup', stopHandler);
+                document.addEventListener('touchmove', moveHandler, { passive: false });
+                document.addEventListener('touchend', stopHandler);
+            },
+
+            onDrag(e, card) {
+                if (!this.activeNoteId) return;
+                if (e.preventDefault) e.preventDefault();
+                
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const dx = clientX - this.startX;
+                const dy = clientY - this.startY;
+
+                card.style.left = `${Math.max(10, this.initialLeft + dx)}px`;
+                card.style.top = `${Math.max(10, this.initialTop + dy)}px`;
+            }
+        };
+
+        // KANBAN DRAG & DROP HANDLERS
+        function handleKanbanDragStart(e, id) {
+            e.dataTransfer.setData('text/plain', id);
+        }
+
+        function allowKanbanDrop(e) {
+            e.preventDefault();
+        }
+
+        function handleKanbanDrop(e, newStatus) {
+            e.preventDefault();
+            const id = e.dataTransfer.getData('text/plain');
+            const note = state.notes.find(n => n.id === id);
+            if (note && note.status !== newStatus) {
+                note.status = newStatus;
+                Storage.saveNotes();
+                soundEngine.playChime('add');
+                NoteEngine.renderAllViews();
+            }
+        }
+
+
+        // AMBIENT BACKGROUND PARTICLE CANVAS
+        const ParticleEngine = {
+            canvas: null,
+            ctx: null,
+            particles: [],
+
+            init() {
+                this.canvas = document.getElementById('bgCanvas');
+                if (!this.canvas) return;
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                
+                window.addEventListener('resize', () => this.resize());
+                this.createParticles();
+                this.animate();
+            },
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+
+            createParticles() {
+                this.particles = [];
+                const count = Math.floor(window.innerWidth / 25);
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.canvas.width,
+                        y: Math.random() * this.canvas.height,
+                        radius: Math.random() * 3 + 1,
+                        color: `hsla(${35 + Math.random() * 20}, 90%, 60%, ${0.2 + Math.random() * 0.3})`,
+                        vx: (Math.random() - 0.5) * 0.4,
+                        vy: -Math.random() * 0.6 - 0.2
+                    });
+                }
+            },
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.particles.forEach(p => {
+                    p.x += p.vx * state.particleSpeed;
+                    p.y += p.vy * state.particleSpeed;
+
+                    if (p.y < -10) p.y = this.canvas.height + 10;
+                    if (p.x < -10) p.x = this.canvas.width + 10;
+                    if (p.x > this.canvas.width + 10) p.x = -10;
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.fill();
+                });
+
+                requestAnimationFrame(() => this.animate());
+            }
+        };
+
+
+        // GUIDED TOUR ENGINE
+        const TourEngine = {
+            step: 0,
+            steps: [
+                {
+                    title: "Welcome to Warm Notes Studio! ☀️",
+                    body: "This studio offers a cozy space for notes, checklists, and photo attachments with real-time UI customization.",
+                    target: null
+                },
+                {
+                    title: "✏️ Universal Text Editor",
+                    body: "Click this button to turn on Universal Text Mode. Once ON, you can click ANY text anywhere on screen to edit it inline!",
+                    target: "#toggleUniversalEditBtn"
+                },
+                {
+                    title: "🎨 Switch Views Seamlessly",
+                    body: "Easily switch between Masonry Grid, Freeform Drag & Drop Canvas, and Kanban Workflow board.",
+                    target: "[data-text-id='sidebar-view-label']"
+                },
+                {
+                    title: "📸 Add Notes & Photos",
+                    body: "Create new notes with cozy custom frames like Polaroid Classic, Wooden Frame, or Sunset Glow.",
+                    target: "#openNewNoteModalBtn"
+                },
+                {
+                    title: "🗑️ Flawless Note Deletion",
+                    body: "Clicking the trash icon on any card instantly triggers a warm poof effect and removes the note cleanly.",
+                    target: null
+                },
+                {
+                    title: "🎛️ Customizer Studio",
+                    body: "Change themes, adjust ambient particle speed, or reset customized text anytime here!",
+                    target: "#openStudioModalBtn"
+                }
+            ],
+
+            start() {
+                this.step = 0;
+                this.showStep();
+                document.getElementById('tourOverlay').classList.remove('hidden');
+            },
+
+            showStep() {
+                const current = this.steps[this.step];
+                document.getElementById('tourStepBadge').textContent = `Step ${this.step + 1} of ${this.steps.length}`;
+                document.getElementById('tourStepTitle').textContent = current.title;
+                document.getElementById('tourStepBody').textContent = current.body;
+
+                // Clear prior highlights
+                document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+
+                if (current.target) {
+                    const el = document.querySelector(current.target);
+                    if (el) el.classList.add('tour-highlight');
+                }
+            },
+
+            next() {
+                if (this.step < this.steps.length - 1) {
+                    this.step++;
+                    this.showStep();
+                } else {
+                    this.end();
+                }
+            },
+
+            prev() {
+                if (this.step > 0) {
+                    this.step--;
+                    this.showStep();
+                }
+            },
+
+            end() {
+                document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+                document.getElementById('tourOverlay').classList.add('hidden');
+            }
+        };
+
+
+        // EVENT BINDINGS & INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            // Init Engines
+            UniversalTextEngine.init();
+            NoteEngine.init();
+            ParticleEngine.init();
+
+            // View Switcher Tabs
+            document.querySelectorAll('.view-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const view = btn.dataset.view;
+                    state.activeView = view;
+
+                    document.querySelectorAll('.view-tab-btn').forEach(b => {
+                        b.classList.remove('bg-amber-500', 'text-white', 'font-semibold');
+                        b.classList.add('text-amber-900', 'dark:text-amber-200');
+                    });
+                    btn.classList.add('bg-amber-500', 'text-white', 'font-semibold');
+
+                    document.querySelectorAll('.view-container').forEach(c => c.classList.add('hidden'));
+                    document.getElementById(`${view}View`).classList.remove('hidden');
+
+                    soundEngine.playChime('edit');
+                    NoteEngine.renderAllViews();
+                });
+            });
+
+            // Universal Edit Button Toggle
+            document.getElementById('toggleUniversalEditBtn').addEventListener('click', () => {
+                UniversalTextEngine.toggleMode();
+            });
+
+            document.getElementById('closeEditBannerBtn').addEventListener('click', () => {
+                UniversalTextEngine.toggleMode(false);
+            });
+
+            document.getElementById('resetTextBtnBanner').addEventListener('click', () => {
+                UniversalTextEngine.resetAllText();
+            });
+
+            document.getElementById('resetAllTextBtnModal').addEventListener('click', () => {
+                UniversalTextEngine.resetAllText();
+            });
+
+            // Guided Tour Listeners
+            document.getElementById('startTourBtn').addEventListener('click', () => TourEngine.start());
+            document.getElementById('skipTourBtn').addEventListener('click', () => TourEngine.end());
+            document.getElementById('nextTourBtn').addEventListener('click', () => TourEngine.next());
+            document.getElementById('prevTourBtn').addEventListener('click', () => TourEngine.prev());
+
+            // Search Filter
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                state.searchQuery = e.target.value;
+                NoteEngine.renderAllViews();
+            });
+
+            // Sound Toggle
+            document.getElementById('soundToggleBtn').addEventListener('click', () => {
+                state.soundEnabled = !state.soundEnabled;
+                const icon = document.getElementById('soundIcon');
+                icon.className = state.soundEnabled ? 'fa-solid fa-volume-high text-amber-600' : 'fa-solid fa-volume-xmark text-amber-800/40';
+            });
+
+            // Studio Modal
+            document.getElementById('openStudioModalBtn').addEventListener('click', () => {
+                document.getElementById('studioModal').classList.remove('hidden');
+            });
+            document.getElementById('closeStudioModalBtn').addEventListener('click', () => {
+                document.getElementById('studioModal').classList.add('hidden');
+            });
+
+            // Theme Switcher
+            document.querySelectorAll('.theme-option-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const theme = btn.dataset.theme;
+                    state.theme = theme;
+                    if (theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                });
+            });
+
+            // Particle Speed Range
+            document.getElementById('particleSpeedRange').addEventListener('input', (e) => {
+                state.particleSpeed = parseFloat(e.target.value);
+                document.getElementById('particleSpeedValue').textContent = `${state.particleSpeed.toFixed(1)}x`;
+            });
+
+            // Note Modal Form Handling
+            const noteModal = document.getElementById('noteModal');
+            document.getElementById('openNewNoteModalBtn').addEventListener('click', () => {
+                document.getElementById('noteForm').reset();
+                document.getElementById('noteId').value = '';
+                document.getElementById('modalHeading').textContent = 'Create New Note';
+                noteModal.classList.remove('hidden');
+            });
+
+            document.getElementById('emptyStateAddBtn').addEventListener('click', () => {
+                document.getElementById('noteForm').reset();
+                document.getElementById('noteId').value = '';
+                noteModal.classList.remove('hidden');
+            });
+
+            document.getElementById('closeNoteModalBtn').addEventListener('click', () => noteModal.classList.add('hidden'));
+            document.getElementById('cancelNoteModalBtn').addEventListener('click', () => noteModal.classList.add('hidden'));
+
+            // Render Color Picker Buttons
+            const colorContainer = document.getElementById('colorPickerContainer');
+            let selectedColor = state.colorOptions[0];
+            colorContainer.innerHTML = state.colorOptions.map((c, i) => `
+                <button type="button" onclick="selectedColor='${c}'" class="w-7 h-7 rounded-full border-2 border-white shadow hover:scale-110 transition" style="background-color: ${c}"></button>
+            `).join('');
+
+            // Photo FileReader Attachment
+            let attachedPhotoBase64 = '';
+            document.getElementById('photoFileInput').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (evt) => {
+                        attachedPhotoBase64 = evt.target.result;
+                        document.getElementById('photoPreviewImg').src = attachedPhotoBase64;
+                        document.getElementById('photoPreviewContainer').classList.remove('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            // Note Form Submit
+            document.getElementById('noteForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('noteId').value || `note-${Date.now()}`;
+                const title = document.getElementById('noteTitle').value;
+                const category = document.getElementById('noteCategory').value;
+                const status = document.getElementById('noteStatus').value;
+                const content = document.getElementById('noteContent').value;
+                const photoUrl = attachedPhotoBase64 || document.getElementById('photoUrlInput').value;
+                const photoBorder = document.getElementById('photoBorderStyle').value;
+
+                const existingIndex = state.notes.findIndex(n => n.id === id);
+                const noteObj = {
+                    id,
+                    title,
+                    category,
+                    status,
+                    content,
+                    color: selectedColor,
+                    pinned: existingIndex >= 0 ? state.notes[existingIndex].pinned : false,
+                    createdAt: existingIndex >= 0 ? state.notes[existingIndex].createdAt : new Date().toISOString(),
+                    x: existingIndex >= 0 ? state.notes[existingIndex].x : 40 + Math.random() * 200,
+                    y: existingIndex >= 0 ? state.notes[existingIndex].y : 50 + Math.random() * 100,
+                    photo: photoUrl,
+                    photoBorder: photoBorder
+                };
+
+                if (existingIndex >= 0) {
+                    state.notes[existingIndex] = noteObj;
+                } else {
+                    state.notes.unshift(noteObj);
+                }
+
+                Storage.saveNotes();
+                soundEngine.playChime('add');
+                NoteEngine.renderAllViews();
+                noteModal.classList.add('hidden');
+                attachedPhotoBase64 = '';
+            });
+        });
+    </script>
+</body>
+</html>
